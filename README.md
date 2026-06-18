@@ -1,51 +1,56 @@
-# tcga-luad-survival-analysis
+# TCGA-LUAD Survival Analysis
 
-A bioinformatics pipeline designed to identify and validate prognostic somatic mutation biomarkers in Lung Adenocarcinoma (LUAD) utilizing data from The Cancer Genome Atlas (TCGA).
-
----
-
-## project overview
-This project investigates the correlation between specific gene mutations and patient overall survival (OS) outcomes in LUAD. By extracting, cleaning, and merging large clinical and genomic datasets, this computational pipeline screens known driver genes to uncover statistically significant prognostic indicators.
-
-This allows for more precise genomic risk stratification in clinical settings, potentially identifying high-risk patients who require aggressive therapeutic intervention or heightened post-treatment surveillance despite standard staging metrics.
+Bioinformatics project analyzing somatic mutation data from the TCGA Lung Adenocarcinoma (LUAD) cohort to find which driver gene mutations are associated with patient survival outcomes.
 
 ---
 
-## dataset & sources
-Data was sourced publicly from the **UCSC Xena Functional Genomics Explorer**:
-* **Somatic Mutations:** TCGA Lung Adenocarcinoma Ensemble Somatic Mutation dataset (comprising 194,731 mutation records across 12 feature columns).
-* **Clinical/Phenotype Data:** TCGA LUAD survival dataset mapping overall survival tracking timelines (`OS.time` in days) and censorship events (`OS`) for 721 unique patients.
+## Overview
+This project asks a simple question: do patients with mutations in known LUAD driver genes survive longer or shorter than those without? Using publicly available genomic and clinical data, I built a pipeline that screens 8 driver genes across 680 patients and runs Kaplan-Meier survival analysis to find statistically significant associations.
 
 ---
 
-## computational workflow
-1. **Data Cleaning & ID Alignment:** Parsed complicated multi-character TCGA sample barcodes down to the base 12-character participant identifier to easily cross-reference clinical metrics with genomic profiles.
-2. **Feature Engineering:** Constructed a binary mutation matrix isolating 8 prominent LUAD driver genes (*TP53, KRAS, EGFR, STK11, KEAP1, RBM10, BRAF, NF1*).
-3. **Survival Estimation:** Implemented Kaplan-Meier survival curves and conducted Log-Rank tests utilizing the Python `lifelines` library to evaluate statistical disparities between mutated and wild-type cohorts.
+## Data
+All data sourced from the **UCSC Xena Functional Genomics Explorer** (xena.ucsc.edu):
+
+- **Somatic mutations:** TCGA-LUAD Ensemble Somatic Mutation dataset — 194,731 mutation records across 575 patients
+- **Survival data:** TCGA-LUAD phenotype file — OS.time (days) and OS event flag for 721 patients
+
+No account or controlled access required since both files are publicly available.
 
 ---
 
-## key results
-
-Of the 8 major driver genes evaluated, **RBM10** was identified as the sole statistically significant prognostic biomarker ($p = 0.0228$). 
-
-### Kaplan-Meier Survival Analysis Summary:
-* **RBM10 Finding:** Patients presenting with an *RBM10* mutation ($n = 44$) exhibited significantly accelerated mortality and worse overall survival profiles compared to the wild-type cohort ($n = 636$).
-* **Biological Context:** *RBM10* (RNA Binding Motif Protein 10) acts as a critical tumor suppressor regulating alternative RNA splicing. The dramatic drop in survival suggests that the loss of this master genetic editor drives highly aggressive tumor progression.
-
-<img width="1313" height="657" alt="Screenshot 2026-06-16 at 10 48 38 PM" src="https://github.com/user-attachments/assets/b24f0721-a583-464c-b705-58dffaed230f" />
+## Methods
+1. Loaded and merged mutation and survival datasets, aligning on 12-character TCGA patient IDs
+2. Built a binary mutation matrix for 8 established LUAD driver genes: TP53, KRAS, EGFR, STK11, KEAP1, RBM10, BRAF, NF1
+3. For each gene, split patients into mutated vs. not mutated groups and ran Kaplan-Meier survival estimation with log-rank hypothesis testing using the `lifelines` library
 
 ---
 
-## future plans
-To prepare this work for formal academic conference submission, upcoming milestones include:
-* **Multivariate Adjustment:** Upgrading from univariable Kaplan-Meier splits to a **Cox Proportional Hazards Model** to control for clinical confounding factors like age and tumor stage.
-* **Multiple Testing Correction:** Implementing False Discovery Rate (FDR / Benjamini-Hochberg) adjustments to combat the statistical look-elsewhere effect across multi-gene screens.
+## Results
+
+Of the 8 driver genes tested, **RBM10** was the only statistically significant finding (log-rank p = 0.0228).
+
+Patients with RBM10 mutations (n=44) had noticeably worse overall survival compared to wild-type patients (n=636). RBM10 is an RNA splicing regulator and loss-of-function mutations likely disrupt normal mRNA processing in tumor suppressor transcripts, contributing to more aggressive disease progression.
+
+STK11 trended toward significance (p=0.0842) but didn't cross the threshold.
+
+![RBM10 Kaplan-Meier Curve](https://github.com/user-attachments/assets/b24f0721-a583-464c-b705-58dffaed230f)
 
 ---
 
-## tech stack & libraries
-* **Language:** Python
-* **Data Manipulation:** `pandas`, `numpy`
-* **Data Visualization:** `matplotlib`
-* **Statistical Modeling:** `lifelines` (KaplanMeierFitter, logrank_test)
+## Limitations
+- RBM10 mutated group is small (n=44), so confidence intervals are wide
+- No multivariate adjustment — age and tumor stage could be confounding the result
+- Analysis limited to 8 pre-selected genes
+
+---
+
+## Next Steps
+- Cox proportional hazards regression to control for age and AJCC stage
+- Expand to all genes mutated in >30 patients with FDR correction for multiple testing
+- Validate RBM10 finding in an independent cohort (CPTAC-LUAD)
+
+---
+
+## Stack
+Python — `pandas`, `matplotlib`, `lifelines`
